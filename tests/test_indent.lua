@@ -59,6 +59,17 @@ T['strictdoc export parses gg=G output (skipped without strictdoc)'] = function(
       dir .. '/in' }, { text = true }):wait()
     assert(r.code == 0, f .. ': strictdoc export failed:\n' .. r.stdout .. r.stderr)
   end
+  -- A section produced by the default gs wrap must parse too.
+  H.buf({ '[DOCUMENT]', 'TITLE: D', '', '[TEXT]', 'STATEMENT: >>>', 'body', '<<<' })
+  H.feed('4GVGgs')
+  vim.cmd('stopinsert')
+  vim.api.nvim_buf_set_lines(0, 4, 5, false, { 'TITLE: S' })
+  local dir = vim.fn.tempname()
+  vim.fn.mkdir(dir .. '/in', 'p')
+  vim.fn.writefile(H.lines(), dir .. '/in/gs.sdoc')
+  local r = vim.system({ exe, 'export', '--formats', 'json', '--output-dir', dir .. '/out',
+    dir .. '/in' }, { text = true }):wait()
+  assert(r.code == 0, 'gs: strictdoc export failed:\n' .. r.stdout .. r.stderr)
 end
 
 T['gg=G leaves the 6k-line user guide untouched'] = function()

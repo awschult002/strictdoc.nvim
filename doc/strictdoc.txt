@@ -122,8 +122,9 @@ g:strictdoc_virtual_indent   Set to 0 to turn off the virtual indent
                           (|strictdoc-virtual-indent|). Default on.
 
                                         *g:strictdoc_composite_sections*
-g:strictdoc_composite_sections   Set to 1 to make `gs` emit the newer
-                          [[SECTION]] / [[/SECTION]] form. Default 0.
+g:strictdoc_composite_sections   `gs` emits [[SECTION]] / [[/SECTION]] by
+                          default. Set to 0 for the legacy [SECTION] form
+                          (rejected by StrictDoc 0.30+). Default 1.
 
 Example: >lua
   vim.g.strictdoc_no_mappings = 1

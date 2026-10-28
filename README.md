@@ -81,7 +81,7 @@ parser exists). Nowhere else.
 | `vim.g.strictdoc_virtual_indent` | on | `0`: no virtual indent (plain flat view) |
 | `shiftwidth` (buffer) | `2` | width of one virtual indent level |
 | `vim.g.strictdoc_no_mappings` | unset | `1`: skip the default keys; `<Plug>` maps stay |
-| `vim.g.strictdoc_composite_sections` | `0` | `1`: `gs` emits `[[SECTION]]` / `[[/SECTION]]` |
+| `vim.g.strictdoc_composite_sections` | `1` | `0`: `gs` emits legacy `[SECTION]` / `[/SECTION]` (rejected by StrictDoc ≥ 0.30) |
 | `:StrictdocOutline` | | toggle the outline; in it `<CR>` jumps, `zc`/`zo` fold, `q` closes |
 | `tagfunc` | set | `Ctrl-]`/`:tag` on UIDs, links, anchors, section titles |
 | `foldmethod=expr`, `foldlevel` | `99` | every node folds; `zM` closes all |
@@ -101,7 +101,6 @@ vim.wo.foldlevel = 0    -- open files folded
 ```lua
 vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
 
-vim.g.strictdoc_composite_sections = 1 -- gs writes [[SECTION]]
 vim.g.strictdoc_no_mappings = 1        -- pick your own keys
 
 vim.api.nvim_create_autocmd('FileType', {

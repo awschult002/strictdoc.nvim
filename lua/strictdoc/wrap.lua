@@ -19,9 +19,9 @@ function M.wrap(kind)
     vim.api.nvim_win_set_cursor(0, { s, 0 })
     return
   end
-  local open, close = '[SECTION]', '[/SECTION]'
-  if vim.g.strictdoc_composite_sections == 1 then
-    open, close = '[[SECTION]]', '[[/SECTION]]'
+  local open, close = '[[SECTION]]', '[[/SECTION]]'
+  if vim.g.strictdoc_composite_sections == 0 then
+    open, close = '[SECTION]', '[/SECTION]'
   end
   local out = { open, 'TITLE: ', '' }
   vim.list_extend(out, lines)
