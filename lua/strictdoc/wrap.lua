@@ -1,11 +1,11 @@
 -- Visual wrap mappings: gr (REQUIREMENT), gt (TEXT), gs (SECTION).
-local indent = require('strictdoc.indent')
 local M = {}
 
-local function block(tag, ind, lines)
-  local out = { ind .. '[' .. tag .. ']', ind .. 'STATEMENT: >>>' }
+-- Inserted markers are flat; strictdoc.virtual shows the nesting.
+local function block(tag, lines)
+  local out = { '[' .. tag .. ']', 'STATEMENT: >>>' }
   vim.list_extend(out, lines)
-  out[#out + 1] = ind .. '<<<'
+  out[#out + 1] = '<<<'
   return out
 end
 
@@ -13,10 +13,9 @@ end
 function M.wrap(kind)
   local s, e = vim.fn.line("'<"), vim.fn.line("'>")
   local lines = vim.api.nvim_buf_get_lines(0, s - 1, e, false)
-  local ind = string.rep(' ', indent.marker(0, s))
   if kind ~= 'section' then
     vim.api.nvim_buf_set_lines(0, s - 1, e, false,
-      block(kind == 'text' and 'TEXT' or 'REQUIREMENT', ind, lines))
+      block(kind == 'text' and 'TEXT' or 'REQUIREMENT', lines))
     vim.api.nvim_win_set_cursor(0, { s, 0 })
     return
   end
@@ -24,14 +23,11 @@ function M.wrap(kind)
   if vim.g.strictdoc_composite_sections == 1 then
     open, close = '[[SECTION]]', '[[/SECTION]]'
   end
-  local out = { ind .. open, 'TITLE: ', '' }
+  local out = { open, 'TITLE: ', '' }
   vim.list_extend(out, lines)
-  vim.list_extend(out, { '', ind .. close })
+  vim.list_extend(out, { '', close })
   vim.api.nvim_buf_set_lines(0, s - 1, e, false, out)
-  -- Let indentexpr place the title and the selection one level in.
-  vim.cmd(('silent keepjumps normal! %dGV%dG='):format(s + 1, s + #out - 2))
-  local title = vim.fn.getline(s + 1)
-  vim.api.nvim_win_set_cursor(0, { s + 1, #title })
+  vim.api.nvim_win_set_cursor(0, { s + 1, #'TITLE: ' })
   vim.cmd('startinsert!')
 end
 
