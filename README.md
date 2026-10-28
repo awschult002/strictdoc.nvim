@@ -11,18 +11,18 @@ from the StrictDoc repo.
 
 ## Install
 
-As a package:
+With the built-in `vim.pack` (Neovim 0.12+), in your `init.lua`:
+
+```lua
+vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
+```
+
+Or by hand as a native package (any name works in place of `plugins`):
 
 ```sh
 git clone https://github.com/awschult002/strictdoc.nvim \
   ~/.local/share/nvim/site/pack/plugins/start/strictdoc.nvim
 nvim -c 'helptags ALL' -c q
-```
-
-Or with the built-in `vim.pack` (Neovim 0.12+):
-
-```lua
-vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
 ```
 
 ## Features
@@ -35,15 +35,18 @@ vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
   RELATIONS (`- TYPE: Parent`, `VALUE:`), booleans, `[LINK: …]` and
   `[ANCHOR: …]`. Groups link to standard ones (`Title`, `Statement`,
   `PreProc`, `Identifier`, `String`, …) so any colorscheme works.
-- **Indent**: `indentexpr` indents one `shiftwidth` inside each `[SECTION]`
-  and `[[NODE]]`, dedents at the closing marker, and keeps the grammar's
-  two-space lists (RELATIONS, OPTIONS, VIEWS, `[GRAMMAR]`). Text between
-  `>>>` and `<<<` is never reindented, so `gg=G` is safe on a whole file.
+- **Indent**: files stay flat, the way StrictDoc requires: `=`/`gg=G` puts
+  every marker and field in column 0 and keeps the grammar's two-space
+  lists (RELATIONS, OPTIONS, VIEWS, `[GRAMMAR]`). Text between `>>>` and
+  `<<<` is never reindented, so `gg=G` is safe on a whole file.
+- **Virtual indent**: nesting is shown with inline virtual text, one
+  `shiftwidth` per open `[SECTION]`/`[[NODE]]`. The buffer text is never
+  changed, so what you save is what StrictDoc parses.
 - **Folding**: `foldexpr` folds every node; sections nest their children.
 - **Motions**: `]]`/`[[` jump between nodes (counts, visual and
   operator-pending work); `an`/`in` select a node.
 - **Wrap**: visual `gr`, `gt`, `gs` wrap the selection in a requirement,
-  a text node or a section at the current section's indent.
+  a text node or a section, always written flat.
 - **Outline**: `:StrictdocOutline` toggles a tree of sections and nodes
   (titles and UIDs) on the right. `<CR>` jumps, `zc`/`zo` fold, `q`
   closes. It refreshes when you write the file.
@@ -51,9 +54,8 @@ vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
   or anchor, also across the project's other `.sdoc` files.
   `:tag Section title` jumps to a section by title.
 
-> StrictDoc wants every marker and field in column 0. The indented layout
-> is easier to read and edit; set `vim.g.strictdoc_indent = 0` and run
-> `gg=G` to get back a file StrictDoc parses.
+> StrictDoc 0.30 rejects leading whitespace before markers and fields.
+> Files indented by older versions of this plugin are fixed with `gg=G`.
 
 ## Mappings
 
@@ -74,14 +76,25 @@ parser exists). Nowhere else.
 
 ## Options
 
-| Variable | Default | Effect |
+| Option | Default | Effect |
 | --- | --- | --- |
+| `vim.g.strictdoc_virtual_indent` | on | `0`: no virtual indent (plain flat view) |
+| `shiftwidth` (buffer) | `2` | width of one virtual indent level |
 | `vim.g.strictdoc_no_mappings` | unset | `1`: skip the default keys; `<Plug>` maps stay |
-| `vim.g.strictdoc_indent` | `1` | `0`: markers and fields in column 0 (StrictDoc's layout) |
 | `vim.g.strictdoc_composite_sections` | `0` | `1`: `gs` emits `[[SECTION]]` / `[[/SECTION]]` |
+| `:StrictdocOutline` | | toggle the outline; in it `<CR>` jumps, `zc`/`zo` fold, `q` closes |
+| `tagfunc` | set | `Ctrl-]`/`:tag` on UIDs, links, anchors, section titles |
+| `foldmethod=expr`, `foldlevel` | `99` | every node folds; `zM` closes all |
 
-The ftplugin sets `expandtab`, `shiftwidth=2`, `softtabstop=2` and
-`foldlevel=99` for sdoc buffers.
+Set the `vim.g` variables before the first `.sdoc` file opens. The
+ftplugin sets `expandtab`, `shiftwidth=2`, `softtabstop=2`,
+`foldmethod=expr` and `foldlevel=99`; override them in
+`~/.config/nvim/after/ftplugin/sdoc.lua`:
+
+```lua
+vim.bo.shiftwidth = 4   -- virtual indent of 4 per level
+vim.wo.foldlevel = 0    -- open files folded
+```
 
 ## Example config
 

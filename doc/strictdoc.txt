@@ -21,12 +21,12 @@ CONTENTS                                                *strictdoc-contents*
 ==============================================================================
 INSTALL                                                 *strictdoc-install*
 
-As a package: >sh
+With the built-in |vim.pack| (Neovim 0.12+), in init.lua: >lua
+  vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
+<
+Or by hand as a native |packages| start package: >sh
   git clone https://github.com/awschult002/strictdoc.nvim \
     ~/.local/share/nvim/site/pack/plugins/start/strictdoc.nvim
-<
-Or with the built-in |vim.pack|: >lua
-  vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
 <
 Run |:helptags| on the doc/ directory if your package manager does not.
 
@@ -51,20 +51,26 @@ Tags       'tagfunc' resolves UIDs, node titles and anchor names, so
 ==============================================================================
 INDENT                                                  *strictdoc-indent*
 
-'indentexpr' indents one 'shiftwidth' inside each [SECTION] and composite
-[[NODE]] and dedents at the closing marker. Fields sit at their node's
-level. Grammar lists keep their fixed two-space structure on top of that
-(RELATIONS, OPTIONS, METADATA, VIEWS, [GRAMMAR] ELEMENTS). Text between
-`>>>` and `<<<` is never reindented; 'preserveindent' keeps its tabs.
-Vim's |=| still empties lines that hold only whitespace.
+Files stay flat, as StrictDoc requires (0.30 rejects leading whitespace
+before markers and fields). 'indentexpr' puts every marker and field in
+column 0; grammar lists keep their fixed two-space structure (RELATIONS,
+OPTIONS, METADATA, VIEWS, [GRAMMAR] ELEMENTS). Text between `>>>` and `<<<`
+is never reindented; 'preserveindent' keeps its tabs. A line that is just
+`<<<` closes the innermost open `KEY: >>>` block, whatever its indent.
+Vim's |=| still empties lines that hold only whitespace. `gg=G` turns a file
+indented by older versions of this plugin back into StrictDoc's layout.
 
-A `<<<` only closes a block at or left of the indent of its `KEY: >>>`
-line, so indented `<<<` lines inside code examples stay text.
+                                                *strictdoc-virtual-indent*
+Nesting is shown with inline virtual text (|nvim_buf_set_extmark()|,
+`virt_text_pos='inline'`): one 'shiftwidth' per open [SECTION] or composite
+[[NODE]], so fields and child nodes appear one level under their marker.
+The buffer text is never changed. It refreshes on |BufEnter|,
+|TextChanged| and |TextChangedI|. Disable with |g:strictdoc_virtual_indent|.
 
-Note: StrictDoc itself expects every marker and field in column 0. Use
-`gg=G` with |g:strictdoc_indent| set to 0 to write files StrictDoc parses.
-
-The ftplugin sets 'expandtab', 'shiftwidth'=2 and 'softtabstop'=2.
+The ftplugin sets 'expandtab', 'shiftwidth'=2 and 'softtabstop'=2. To change
+the virtual indent width, put this in ~/.config/nvim/after/ftplugin/sdoc.lua: >lua
+  vim.bo.shiftwidth = 4
+<
 
 ==============================================================================
 MAPPINGS                                                *strictdoc-mappings*
@@ -80,13 +86,13 @@ All mappings are buffer-local to sdoc buffers.
                                        *<Plug>(strictdoc-wrap-requirement)*
   gt  x       Wrap the selection in [TEXT] / STATEMENT: >>> ... <<<.
                                        *<Plug>(strictdoc-wrap-text)*
-  gs  x       Wrap the selection in [SECTION] ... [/SECTION], reindent it
-              one level and start Insert mode after `TITLE: `.
+  gs  x       Wrap the selection in [SECTION] ... [/SECTION] and start
+              Insert mode after `TITLE: `.
                                        *<Plug>(strictdoc-wrap-section)*
       n       Toggle the outline.            *<Plug>(strictdoc-outline)*
 
-]] and [[ take a count and add to the jumplist. Wrapped nodes land at the
-indent of the section the selection is in.
+]] and [[ take a count and add to the jumplist. Wrapped markers are
+written flat (column 0); the virtual indent shows their nesting.
 
 In sdoc buffers only, these shadow the visual-mode |gs| (sleep), the
 `gra` LSP code action prefix, and the treesitter |v_an| / |v_in| node
@@ -111,9 +117,9 @@ OPTIONS                                                 *strictdoc-options*
 g:strictdoc_no_mappings   Set to 1 before the ftplugin loads to skip the
                           default keys. <Plug> mappings stay defined.
 
-                                                *g:strictdoc_indent*
-g:strictdoc_indent        Set to 0 to put markers and fields in column 0
-                          (the canonical StrictDoc layout). Default 1.
+                                        *g:strictdoc_virtual_indent*
+g:strictdoc_virtual_indent   Set to 0 to turn off the virtual indent
+                          (|strictdoc-virtual-indent|). Default on.
 
                                         *g:strictdoc_composite_sections*
 g:strictdoc_composite_sections   Set to 1 to make `gs` emit the newer
