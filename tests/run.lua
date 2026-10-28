@@ -22,7 +22,7 @@ for _, f in ipairs(files) do
   table.sort(keys)
   for _, k in ipairs(keys) do
     vim.cmd('silent! %bwipeout!')
-    vim.g.strictdoc_indent, vim.g.strictdoc_composite_sections = nil, nil
+    vim.g.strictdoc_virtual_indent, vim.g.strictdoc_composite_sections = nil, nil
     local ok, err = pcall(cases[k])
     if ok then
       pass = pass + 1

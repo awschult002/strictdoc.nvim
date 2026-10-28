@@ -1,6 +1,6 @@
--- indentexpr: one shiftwidth per open [SECTION]/[[NODE]], fixed 2-space
--- sub-indent for grammar-defined lists (RELATIONS, OPTIONS, VIEWS, GRAMMAR),
--- and -1 (keep) for text between >>> and <<<.
+-- indentexpr: column 0 for markers and fields, fixed 2-space sub-indent for
+-- grammar-defined lists (RELATIONS, OPTIONS, VIEWS, GRAMMAR), and -1 (keep)
+-- for text between >>> and <<<. Nesting is shown by strictdoc.virtual.
 local classify = require('strictdoc.scan').classify
 local M = {}
 
@@ -35,11 +35,14 @@ end
 
 local function new() return { depth = 0 } end
 
--- Indent for `line` given the state before it; returns indent, next state.
-function M.step(st, line, sw)
+-- Files stay flat: markers and fields in column 0 (StrictDoc rejects
+-- leading whitespace), grammar lists keep their fixed two-space steps.
+-- Returns the indent for `line` given the state before it (-1 = keep),
+-- its nesting level (shown by strictdoc.virtual), and the next state.
+function M.step(st, line)
   local kind, tag = classify(line)
   local s = { depth = st.depth, ctx = st.ctx, block = st.block, ft = st.ft, bind = st.bind }
-  local ind
+  local ind, lvl = nil, s.depth
   if s.block then
     ind = -1 -- nested `KEY: >>>` examples count up, `<<<` counts down
     if kind == 'mlstart' then s.block = s.block + 1
@@ -48,44 +51,34 @@ function M.step(st, line, sw)
       if s.block == 0 then ind, s.block = s.bind, false end
     end
   elseif s.ft then
-    if kind == 'ftend' then ind, s.ft = s.depth * sw, false else ind = -1 end
+    if kind == 'ftend' then ind, s.ft = 0, false else ind = -1 end
   elseif kind == 'blank' then
     ind, s.ctx = 0, nil
   elseif kind == 'open' then
-    ind, s.depth, s.ctx = s.depth * sw, s.depth + 1, nil
+    ind, s.depth, s.ctx = 0, s.depth + 1, nil
   elseif kind == 'close' then
     s.depth = math.max(0, s.depth - 1)
-    ind, s.ctx = s.depth * sw, nil
+    ind, lvl, s.ctx = 0, s.depth, nil
   elseif kind == 'leaf' or kind == 'freetext' then
-    ind = s.depth * sw
+    ind = 0
     s.ctx = tag == 'GRAMMAR' and 'grammar' or nil
     s.ft = kind == 'freetext'
   else
     local n
     n, s.ctx = sub(s.ctx, line:match('^%s*(.-)%s*$'))
-    ind = s.depth * sw + 2 * n
+    ind = 2 * n
     if kind == 'mlstart' then s.block, s.bind = 1, ind end
   end
-  return ind, s
-end
-
-local function width()
-  if vim.g.strictdoc_indent == 0 then return 0 end
-  return vim.fn.shiftwidth()
+  return ind, lvl, s
 end
 
 -- State before line `lnum` of `buf`, scanning from the top.
 function M.state(buf, lnum)
-  local st, sw = new(), width()
+  local st = new()
   for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, 0, lnum - 1, false)) do
-    _, st = M.step(st, l, sw)
+    _, _, st = M.step(st, l)
   end
   return st
-end
-
--- Indent of a node marker inserted at `lnum`.
-function M.marker(buf, lnum)
-  return M.state(buf, lnum).depth * width()
 end
 
 -- `=` calls this line by line, top to bottom; reuse the state from the
@@ -99,13 +92,14 @@ function M.expr()
   if c and c.lnum < lnum and lnum - c.lnum <= 50 and tick - c.tick <= 1 then
     st = c.st -- `=` skips empty lines, so catch up over the gap
     for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, c.lnum - 1, lnum - 1, false)) do
-      _, st = M.step(st, l, width())
+      _, _, st = M.step(st, l)
     end
   else
     st = M.state(buf, lnum)
   end
   cache[buf] = { lnum = lnum, tick = tick, st = st }
-  return (M.step(st, vim.fn.getline(lnum), width()))
+  return (M.step(st, vim.fn.getline(lnum)))
 end
 
+M.new = new
 return M

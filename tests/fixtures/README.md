@@ -14,6 +14,6 @@ at commit `b1cff12` (Apache-2.0):
 | `user_guide.sdoc` | `docs/strictdoc_01_user_guide.sdoc` |
 
 `scrambled/` holds the same files with random leading whitespace on every
-line outside `>>>`/`<<<` blocks. `expected/` is what `gg=G` must produce
-from them with the default settings. With `g:strictdoc_indent = 0`, `gg=G`
-on `scrambled/` must give back the upstream files byte for byte.
+line outside `>>>`/`<<<` blocks; `gg=G` on them must give back the upstream
+files byte for byte. `expected/` is the nested layout the virtual indent
+must draw: padding plus the flat line equals each line outside text blocks.

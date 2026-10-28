@@ -46,4 +46,7 @@ end
 vim.api.nvim_buf_create_user_command(0, 'StrictdocOutline',
   function() require('strictdoc.outline').toggle() end, { desc = 'Toggle StrictDoc outline' })
 
+require('strictdoc.virtual').attach(vim.api.nvim_get_current_buf())
+undo[#undo + 1] = "lua require'strictdoc.virtual'.detach(vim.api.nvim_get_current_buf())"
+
 vim.b.undo_ftplugin = table.concat(undo, ' | ')
