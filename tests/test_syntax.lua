@@ -38,4 +38,12 @@ T['sections, links, anchors, relations and FREETEXT'] = function()
   H.eq('Title', vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.synID(1, 1, 1)), 'name'))
 end
 
+T['an indented <<< ends the block, nothing leaks past it'] = function()
+  H.buf({ '[REQUIREMENT]', '  STATEMENT: >>>', 'body', '      <<<  ', 'UID: R-1' })
+  vim.cmd('syntax sync fromstart')
+  H.eq('sdocString', group(3, 1))
+  H.eq('sdocDelimiter', group(4, 7))
+  H.eq('sdocKey', group(5, 1))
+end
+
 return T

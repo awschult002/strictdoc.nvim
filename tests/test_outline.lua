@@ -19,6 +19,14 @@ T['outline lists nested nodes with titles and UIDs'] = function()
   H.eq(nil, (outline_buf()))
 end
 
+T['outline ignores indentation of a badly indented file'] = function()
+  H.buf({ '      [SECTION]', 'TITLE: A', '[REQUIREMENT]', '   UID: R-1', '        STATEMENT: >>>',
+          '[REQUIREMENT]', '        <<<', '  TITLE: Req', '    [SECTION]', 'TITLE: B',
+          '  [TEXT]', '     UID: T-1', '  [/SECTION]', '[/SECTION]', '      [REQUIREMENT]', 'TITLE: C' })
+  H.eq({ 'A', '  REQUIREMENT: Req [R-1]', '  B', '    TEXT [T-1]', 'REQUIREMENT: C' },
+       (require('strictdoc.outline').lines(0)))
+end
+
 T['<CR> jumps, the tree refreshes on write and folds'] = function()
   local tmp = vim.fn.tempname() .. '.sdoc'
   vim.fn.writefile(H.read(H.fixtures .. 'anchors.sdoc'), tmp)

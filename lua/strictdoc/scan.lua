@@ -1,8 +1,8 @@
 -- Line classifier and node scanner shared by indent, fold, outline and tags.
 local M = {}
 
--- A `<<<` only closes a block at or left of the opening `KEY: >>>` line's
--- indent (the grammar says column 0), so nested examples stay inside.
+-- Block markers are matched by content, never by indentation: a line that
+-- is just `<<<` closes the innermost open `KEY: >>>` (examples may nest).
 
 -- Classify one line. Returns kind, tag. Kinds: blank, open, close, leaf,
 -- freetext, ftend, mlstart, mlend, field.
@@ -27,14 +27,14 @@ end
 
 local function parse(lines)
   local nodes, stack, cur, leaf = {}, {}, nil, nil
-  local block, ft = nil, false -- block: indent of the open `KEY: >>>` line
+  local block, ft = 0, false -- block: open `KEY: >>>` nesting depth
   for i, line in ipairs(lines) do
     local kind, tag = M.classify(line)
-    local marker = not block and not ft and
+    local marker = block == 0 and not ft and
       (kind == 'open' or kind == 'close' or kind == 'leaf' or kind == 'freetext')
     if leaf and kind ~= 'blank' and not marker then leaf.last = i end
-    if block then
-      if kind == 'mlend' and #line:match('^%s*') <= block then block = nil end
+    if block > 0 then
+      block = block + (kind == 'mlstart' and 1 or kind == 'mlend' and -1 or 0)
     elseif ft then
       ft = kind ~= 'ftend'
     elseif kind == 'open' or kind == 'leaf' or kind == 'freetext' then
@@ -48,7 +48,7 @@ local function parse(lines)
       if n then n.last = i end
       cur, leaf = nil, nil
     elseif kind == 'mlstart' then
-      block = #line:match('^%s*')
+      block = 1
     elseif kind == 'field' and cur then
       local k, v = line:match('^%s*([A-Z]+): (.+)$')
       if (k == 'TITLE' or k == 'UID') and not cur[k:lower()] then

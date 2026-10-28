@@ -36,9 +36,10 @@ syn match sdocSection /^\s*\[\[\/\=SECTION\]\]\s*$/ display
 syn match sdocDocument /^\s*\[\%(DOCUMENT\|GRAMMAR\|DOCUMENT_FROM_FILE\)\]\s*$/ display
 
 " KEY: >>> ... <<< is verbatim text; so is the legacy [FREETEXT] block. The
-" closing <<< sits at the opening line's indent (column 0 in upstream files),
-" so indented <<< inside code examples does not end the block.
-syn region sdocString matchgroup=sdocDelimiter start=/\%(^\z(\s*\)\S.*: \)\@<=>>>$/ end=/^\z1<<<$/ contains=sdocLink,sdocAnchor,@Spell
+" first unmatched line that is just <<< (any indent) ends the block; nested
+" KEY: >>> ... <<< examples are skipped.
+syn region sdocNested contained transparent start=/^\s*[A-Z][A-Za-z0-9_-]*: >>>\s*$/ end=/^\s*<<<\s*$/ contains=sdocNested
+syn region sdocString matchgroup=sdocDelimiter start=/\%(^\s*\S.*: \)\@<=>>>$/ end=/^\s*<<<\s*$/ contains=sdocNested,sdocLink,sdocAnchor,@Spell
 syn region sdocString matchgroup=sdocNode start=/^\s*\[FREETEXT\]\s*$/ end=/^\s*\[\/FREETEXT\]\s*$/ contains=sdocLink,sdocAnchor,@Spell
 
 hi def link sdocDocument PreProc
