@@ -87,16 +87,19 @@ function M.marker(buf, lnum)
   return M.state(buf, lnum).depth * width()
 end
 
--- `=` calls this line by line, top to bottom; reuse the previous line's
--- state when nothing but that line's indent changed in between.
+-- `=` calls this line by line, top to bottom; reuse the state from the
+-- previous call when at most that line's indent changed in between.
 local cache = {}
 
 function M.expr()
   local buf, lnum = vim.api.nvim_get_current_buf(), vim.v.lnum
   local tick = vim.api.nvim_buf_get_changedtick(buf)
   local c, st = cache[buf], nil
-  if c and c.lnum == lnum - 1 and tick - c.tick <= 1 then
-    _, st = M.step(c.st, vim.fn.getline(lnum - 1), width())
+  if c and c.lnum < lnum and lnum - c.lnum <= 50 and tick - c.tick <= 1 then
+    st = c.st -- `=` skips empty lines, so catch up over the gap
+    for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, c.lnum - 1, lnum - 1, false)) do
+      _, st = M.step(st, l, width())
+    end
   else
     st = M.state(buf, lnum)
   end

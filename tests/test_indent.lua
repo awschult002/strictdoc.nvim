@@ -29,7 +29,7 @@ T['gg=G with g:strictdoc_indent=0 leaves the 6k-line user guide untouched'] = fu
   local want = vim.tbl_map(function(l) return l:match('^%s+$') and '' or l end,
     H.read(H.fixtures .. 'user_guide.sdoc'))
   H.eq(want, H.lines())
-  assert(vim.uv.hrtime() - t < 5e9, 'gg=G took more than 5s')
+  assert(vim.uv.hrtime() - t < 2e9, 'gg=G took more than 2s')
 end
 
 T['text between >>> and <<< is never reindented'] = function()

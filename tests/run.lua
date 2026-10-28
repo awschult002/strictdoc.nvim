@@ -33,5 +33,5 @@ for _, f in ipairs(files) do
     end
   end
 end
-print(('\n%d passed, %d failed'):format(pass, fail))
+io.stdout:write(('\n%d passed, %d failed\n'):format(pass, fail))
 vim.cmd(fail > 0 and 'cquit 1' or 'quitall!')
