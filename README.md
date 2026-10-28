@@ -83,6 +83,7 @@ parser exists). Nowhere else.
 | `vim.g.strictdoc_no_mappings` | unset | `1`: skip the default keys; `<Plug>` maps stay |
 | `vim.g.strictdoc_composite_sections` | `1` | `0`: `gs` emits legacy `[SECTION]` / `[/SECTION]` (rejected by StrictDoc ≥ 0.30) |
 | `:StrictdocOutline` | | toggle the outline; in it `<CR>` jumps, `zc`/`zo` fold, `q` closes |
+| `vim.g.strictdoc_makeprg` | `strictdoc format %:S` | `makeprg` for `:compiler strictdoc` (set by the ftplugin); `:make` validates the file, `:copen` lists errors with file:line:col |
 | `tagfunc` | set | `Ctrl-]`/`:tag` on UIDs, links, anchors, section titles |
 | `foldmethod=expr`, `foldlevel` | `99` | every node folds; `zM` closes all |
 

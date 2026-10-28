@@ -110,6 +110,16 @@ COMMANDS                                                *strictdoc-commands*
                     branches. The tree refreshes when the file is written.
                     Its 'filetype' is `strictdoc-outline`.
 
+                                                *strictdoc-make*
+:make               The ftplugin runs `:compiler strictdoc`, so |:make|
+                    validates the current file with `strictdoc format`
+                    and fills the |quickfix| list (|:copen|). Parse and
+                    field errors jump to file:line:col; graph errors (bad
+                    links, legacy [SECTION]) are listed without position.
+                    `strictdoc format` rewrites the file only when
+                    `document_line_width` is configured (then |:checktime|),
+                    and leaves an `output/_cache` dir in the cwd.
+
 ==============================================================================
 OPTIONS                                                 *strictdoc-options*
 
@@ -125,6 +135,11 @@ g:strictdoc_virtual_indent   Set to 0 to turn off the virtual indent
 g:strictdoc_composite_sections   `gs` emits [[SECTION]] / [[/SECTION]] by
                           default. Set to 0 for the legacy [SECTION] form
                           (rejected by StrictDoc 0.30+). Default 1.
+
+                                        *g:strictdoc_makeprg*
+g:strictdoc_makeprg   'makeprg' for the strictdoc compiler. Default
+                          `strictdoc format %:S`. Example:
+                          `strictdoc export --output-dir /tmp/sd %:p:h:S`
 
 Example: >lua
   vim.g.strictdoc_no_mappings = 1

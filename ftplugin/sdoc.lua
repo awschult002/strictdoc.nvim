@@ -12,7 +12,9 @@ o.expandtab = true
 o.shiftwidth = 2
 o.softtabstop = 2
 
-local undo = { 'setl fdm< fde< fdl< tfu< cms< et< sw< sts<', 'silent! delcommand -buffer StrictdocOutline' }
+vim.cmd.compiler('strictdoc')
+
+local undo = { 'setl fdm< fde< fdl< tfu< cms< et< sw< sts< mp< efm<', 'unlet! b:current_compiler', 'silent! delcommand -buffer StrictdocOutline' }
 local function map(modes, lhs, rhs, desc)
   vim.keymap.set(vim.split(modes, ''), lhs, rhs, { buffer = true, silent = true, desc = desc })
   for m in modes:gmatch('.') do
