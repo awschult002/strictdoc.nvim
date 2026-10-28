@@ -3,13 +3,14 @@ local scan = require('strictdoc.scan')
 local M = {}
 local views = {} -- source buf -> { buf, win, map }
 
+-- Prose [TEXT] nodes only show up when they carry a UID.
 local skip = { DOCUMENT = true, GRAMMAR = true }
 
 -- Outline lines and the source line each one points at.
 function M.lines(src)
   local lines, map = {}, {}
   for _, n in ipairs(scan.nodes(src)) do
-    if not skip[n.tag] then
+    if not skip[n.tag] and (n.tag ~= 'TEXT' or n.uid) then
       local label = n.title or n.tag
       if n.tag ~= 'SECTION' and n.title then label = n.tag .. ': ' .. label end
       if n.uid then label = label .. ' [' .. n.uid .. ']' end

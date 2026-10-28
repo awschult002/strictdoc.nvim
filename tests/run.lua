@@ -11,6 +11,7 @@ vim.cmd('packloadall')
 vim.cmd('filetype plugin indent on')
 vim.cmd('syntax on')
 vim.o.shortmess = vim.o.shortmess .. 'AF'
+vim.o.report = 10000
 
 local files = #_G.arg > 0 and _G.arg or vim.fn.glob(root .. '/tests/test_*.lua', false, true)
 local pass, fail = 0, 0

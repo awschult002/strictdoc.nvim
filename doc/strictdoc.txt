@@ -99,6 +99,7 @@ COMMANDS                                                *strictdoc-commands*
                                                         *:StrictdocOutline*
 :StrictdocOutline   Toggle a scratch split on the right with the section
                     and node tree: titles and [UIDs], indented by depth.
+                    [TEXT] nodes are listed only when they have a UID.
                     <CR> jumps to the node, `q` closes, |zc|/|zo| fold
                     branches. The tree refreshes when the file is written.
                     Its 'filetype' is `strictdoc-outline`.
