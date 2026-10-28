@@ -41,10 +41,11 @@ function M.step(st, line, sw)
   local s = { depth = st.depth, ctx = st.ctx, block = st.block, ft = st.ft, bind = st.bind }
   local ind
   if s.block then
-    if kind == 'mlend' and #line:match('^%s*') <= s.bind then
-      ind, s.block = s.bind, false
-    else
-      ind = -1
+    ind = -1 -- nested `KEY: >>>` examples count up, `<<<` counts down
+    if kind == 'mlstart' then s.block = s.block + 1
+    elseif kind == 'mlend' then
+      s.block = s.block - 1
+      if s.block == 0 then ind, s.block = s.bind, false end
     end
   elseif s.ft then
     if kind == 'ftend' then ind, s.ft = s.depth * sw, false else ind = -1 end
@@ -63,7 +64,7 @@ function M.step(st, line, sw)
     local n
     n, s.ctx = sub(s.ctx, line:match('^%s*(.-)%s*$'))
     ind = s.depth * sw + 2 * n
-    if kind == 'mlstart' then s.block, s.bind = true, ind end
+    if kind == 'mlstart' then s.block, s.bind = 1, ind end
   end
   return ind, s
 end

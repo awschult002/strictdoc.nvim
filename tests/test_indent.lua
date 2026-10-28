@@ -34,10 +34,28 @@ end
 
 T['text between >>> and <<< is never reindented'] = function()
   H.buf({ '[SECTION]', 'TITLE: S', '', '[TEXT]', 'STATEMENT: >>>',
-          '      odd', '\ttab', '    <<<', 'UID: not-a-field', '[REQUIREMENT]', '<<<', '', '[/SECTION]' })
+          '      odd', '\ttab', 'UID: not-a-field', '[REQUIREMENT]', '<<<', '', '[/SECTION]' })
   vim.cmd('silent normal! gg=G')
   H.eq({ '[SECTION]', '  TITLE: S', '', '  [TEXT]', '  STATEMENT: >>>',
-         '      odd', '\ttab', '    <<<', 'UID: not-a-field', '[REQUIREMENT]', '  <<<', '', '[/SECTION]' }, H.lines())
+         '      odd', '\ttab', 'UID: not-a-field', '[REQUIREMENT]', '  <<<', '', '[/SECTION]' }, H.lines())
+end
+
+local misplaced = { '[SECTION]', 'TITLE: S', '', '[REQUIREMENT]', '      STATEMENT: >>>',
+                    '   body', '        <<<', 'UID: R-1', '', '[/SECTION]' }
+
+T['mis-indented >>> and <<< snap to the field level'] = function()
+  H.buf(misplaced)
+  vim.cmd('silent normal! gg=G')
+  H.eq({ '[SECTION]', '  TITLE: S', '', '  [REQUIREMENT]', '  STATEMENT: >>>',
+         '   body', '  <<<', '  UID: R-1', '', '[/SECTION]' }, H.lines())
+end
+
+T['mis-indented <<< snaps to column 0 with g:strictdoc_indent=0'] = function()
+  vim.g.strictdoc_indent = 0
+  H.buf(misplaced)
+  vim.cmd('silent normal! gg=G')
+  H.eq({ '[SECTION]', 'TITLE: S', '', '[REQUIREMENT]', 'STATEMENT: >>>',
+         '   body', '<<<', 'UID: R-1', '', '[/SECTION]' }, H.lines())
 end
 
 return T
