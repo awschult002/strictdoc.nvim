@@ -1,0 +1,131 @@
+*strictdoc.txt*  StrictDoc .sdoc support for Neovim
+
+                                                        *strictdoc* *sdoc*
+Syntax, indent, folding, node motions, wrap mappings, an outline and tag
+jumps for StrictDoc (https://strictdoc.readthedocs.io) `.sdoc` files.
+Pure Lua plus one Vimscript syntax file. No dependencies, no setup().
+
+The syntax follows the textX grammar in strictdoc/backend/sdoc/grammar/ of
+https://github.com/strictdoc-project/strictdoc.
+
+==============================================================================
+CONTENTS                                                *strictdoc-contents*
+
+  Install ............................................ |strictdoc-install|
+  Features ........................................... |strictdoc-features|
+  Indent ............................................. |strictdoc-indent|
+  Mappings ........................................... |strictdoc-mappings|
+  Commands ........................................... |strictdoc-commands|
+  Options ............................................ |strictdoc-options|
+
+==============================================================================
+INSTALL                                                 *strictdoc-install*
+
+As a package: >sh
+  git clone https://github.com/awschult002/strictdoc.nvim \
+    ~/.local/share/nvim/site/pack/plugins/start/strictdoc.nvim
+<
+Or with the built-in |vim.pack|: >lua
+  vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
+<
+Run |:helptags| on the doc/ directory if your package manager does not.
+
+==============================================================================
+FEATURES                                                *strictdoc-features*
+
+Filetype   `*.sdoc` is detected as `sdoc`.
+Syntax     Node markers ([DOCUMENT], [GRAMMAR], [DOCUMENT_FROM_FILE],
+           [SECTION]/[/SECTION], [[NODE]]/[[/NODE]], [REQUIREMENT], [TEXT],
+           any custom [NODE], legacy [FREETEXT]/[/FREETEXT]), `KEY:` fields,
+           `>>>`/`<<<` text blocks, RELATIONS (`- TYPE: Parent`, `VALUE:`),
+           booleans, `[LINK: UID]` and `[ANCHOR: UID]`. Groups link to
+           standard ones (Title, Statement, PreProc, Identifier, String,
+           Constant, Boolean, Type, Delimiter, Underlined, Label).
+Folding    'foldexpr' folds every node; sections and composite nodes nest
+           their children. The ftplugin sets 'foldlevel' to 99.
+Tags       'tagfunc' resolves UIDs, node titles and anchor names, so
+           CTRL-] works on a UID, on `[LINK: X]` and on `VALUE: X`, and
+           `:tag Some title` jumps to a section. Unknown UIDs are looked up
+           in the other .sdoc files of the project (git root).
+
+==============================================================================
+INDENT                                                  *strictdoc-indent*
+
+'indentexpr' indents one 'shiftwidth' inside each [SECTION] and composite
+[[NODE]] and dedents at the closing marker. Fields sit at their node's
+level. Grammar lists keep their fixed two-space structure on top of that
+(RELATIONS, OPTIONS, METADATA, VIEWS, [GRAMMAR] ELEMENTS). Text between
+`>>>` and `<<<` is never reindented; 'preserveindent' keeps its tabs.
+Vim's |=| still empties lines that hold only whitespace.
+
+A `<<<` only closes a block at or left of the indent of its `KEY: >>>`
+line, so indented `<<<` lines inside code examples stay text.
+
+Note: StrictDoc itself expects every marker and field in column 0. Use
+`gg=G` with |g:strictdoc_indent| set to 0 to write files StrictDoc parses.
+
+The ftplugin sets 'expandtab', 'shiftwidth'=2 and 'softtabstop'=2.
+
+==============================================================================
+MAPPINGS                                                *strictdoc-mappings*
+
+All mappings are buffer-local to sdoc buffers.
+
+  ]]  n x o   Next node.                     *<Plug>(strictdoc-next-node)*
+  [[  n x o   Previous node.                 *<Plug>(strictdoc-prev-node)*
+  an  x o     Around node (marker to end).   *<Plug>(strictdoc-node-outer)*
+  in  x o     Inside node: fields of a leaf, children of a section.
+                                             *<Plug>(strictdoc-node-inner)*
+  gr  x       Wrap the selection in [REQUIREMENT] / STATEMENT: >>> ... <<<.
+                                       *<Plug>(strictdoc-wrap-requirement)*
+  gt  x       Wrap the selection in [TEXT] / STATEMENT: >>> ... <<<.
+                                       *<Plug>(strictdoc-wrap-text)*
+  gs  x       Wrap the selection in [SECTION] ... [/SECTION], reindent it
+              one level and start Insert mode after `TITLE: `.
+                                       *<Plug>(strictdoc-wrap-section)*
+      n       Toggle the outline.            *<Plug>(strictdoc-outline)*
+
+]] and [[ take a count and add to the jumplist. Wrapped nodes land at the
+indent of the section the selection is in.
+
+In sdoc buffers only, these shadow the visual-mode |gs| (sleep), the
+`gra` LSP code action prefix, and the treesitter |v_an| / |v_in| node
+selection (there is no sdoc parser). Disable them with
+|g:strictdoc_no_mappings| and map the <Plug> keys yourself.
+
+==============================================================================
+COMMANDS                                                *strictdoc-commands*
+
+                                                        *:StrictdocOutline*
+:StrictdocOutline   Toggle a scratch split on the right with the section
+                    and node tree: titles and [UIDs], indented by depth.
+                    <CR> jumps to the node, `q` closes, |zc|/|zo| fold
+                    branches. The tree refreshes when the file is written.
+                    Its 'filetype' is `strictdoc-outline`.
+
+==============================================================================
+OPTIONS                                                 *strictdoc-options*
+
+                                                *g:strictdoc_no_mappings*
+g:strictdoc_no_mappings   Set to 1 before the ftplugin loads to skip the
+                          default keys. <Plug> mappings stay defined.
+
+                                                *g:strictdoc_indent*
+g:strictdoc_indent        Set to 0 to put markers and fields in column 0
+                          (the canonical StrictDoc layout). Default 1.
+
+                                        *g:strictdoc_composite_sections*
+g:strictdoc_composite_sections   Set to 1 to make `gs` emit the newer
+                          [[SECTION]] / [[/SECTION]] form. Default 0.
+
+Example: >lua
+  vim.g.strictdoc_no_mappings = 1
+  vim.api.nvim_create_autocmd('FileType', {
+    pattern = 'sdoc',
+    callback = function()
+      vim.keymap.set('x', '<leader>r', '<Plug>(strictdoc-wrap-requirement)', { buffer = true })
+      vim.keymap.set('n', '<leader>o', '<Plug>(strictdoc-outline)', { buffer = true })
+    end,
+  })
+<
+ vim:tw=78:ts=8:ft=help:norl:
