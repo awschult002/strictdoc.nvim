@@ -1,5 +1,5 @@
 -- Install this checkout with the built-in vim.pack.add() and check it loads.
--- Tests the committed HEAD. Run with a throwaway XDG_DATA_HOME (see Makefile).
+-- Tests the committed HEAD. Run with throwaway XDG_DATA_HOME and XDG_CONFIG_HOME (see Makefile).
 local root = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:sub(2), ':p:h:h')
 -- Pin the commit under test: CI checkouts have a detached HEAD.
 local rev = vim.trim(vim.system({ 'git', '-C', root, 'rev-parse', 'HEAD' }):wait().stdout)
