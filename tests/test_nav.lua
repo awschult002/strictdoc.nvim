@@ -34,4 +34,22 @@ T['an / in select a node'] = function()
   H.eq(17, vim.fn.line('$'))
 end
 
+T['at / it select a multi-line block'] = function()
+  H.buf({ '[REQUIREMENT]', 'STATEMENT: >>>', 'one', '', 'two', '<<<', 'TITLE: x' })
+  H.feed('4Gvit<Esc>')
+  H.eq({ 3, 5 }, { vim.fn.line("'<"), vim.fn.line("'>") })
+  H.feed('3Gvat<Esc>')
+  H.eq({ 2, 6 }, { vim.fn.line("'<"), vim.fn.line("'>") })
+  H.feed('3Gdit')
+  H.eq({ '[REQUIREMENT]', 'STATEMENT: >>>', '<<<', 'TITLE: x' }, H.lines())
+end
+
+T['it picks the innermost nested block'] = function()
+  H.buf({ 'CODE: >>>', 'a', 'INNER: >>>', 'b', '<<<', 'c', '<<<' })
+  H.feed('4Gvit<Esc>')
+  H.eq({ 4, 4 }, { vim.fn.line("'<"), vim.fn.line("'>") })
+  H.feed('6Gvit<Esc>')
+  H.eq({ 2, 6 }, { vim.fn.line("'<"), vim.fn.line("'>") })
+end
+
 return T
