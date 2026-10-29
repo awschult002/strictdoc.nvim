@@ -60,6 +60,18 @@ is never reindented; 'preserveindent' keeps its tabs. A line that is just
 Vim's |=| still empties lines that hold only whitespace. `gg=G` turns a file
 indented by older versions of this plugin back into StrictDoc's layout.
 
+                                                *strictdoc-format* *:StrictdocFormat*
+StrictDoc also needs exactly one empty line before every node marker
+([TEXT], [REQUIREMENT], [[SECTION]], [[/SECTION]], [SECTION], [/SECTION],
+[DOCUMENT_FROM_FILE], any [NODE] or [[NODE]]), except the first [DOCUMENT];
+a missing or a second empty line is a syntax error. 'indentexpr' cannot add
+lines, so the ftplugin maps |=| and |==| to an operator that first fixes
+the empty lines before markers in the range, then runs the builtin |=|.
+'formatexpr' does the same for |gq|, and `:[range]StrictdocFormat`
+(default whole file) for a range. Text in `>>>`/`<<<` and [FREETEXT] is
+left alone. With |g:strictdoc_no_mappings| |=| stays builtin (indent only);
+map `<Plug>(strictdoc-format)` yourself or use |gq|.
+
                                                 *strictdoc-virtual-indent*
 Nesting is shown with inline virtual text (|nvim_buf_set_extmark()|,
 `virt_text_pos='inline'`): one 'shiftwidth' per open [SECTION] or composite
@@ -110,6 +122,16 @@ COMMANDS                                                *strictdoc-commands*
                     branches. The tree refreshes when the file is written.
                     Its 'filetype' is `strictdoc-outline`.
 
+                                                *strictdoc-make*
+:make               The ftplugin runs `:compiler strictdoc`, so |:make|
+                    validates the current file with `strictdoc format`
+                    and fills the |quickfix| list (|:copen|). Parse and
+                    field errors jump to file:line:col; graph errors (bad
+                    links, legacy [SECTION]) are listed without position.
+                    `strictdoc format` rewrites the file only when
+                    `document_line_width` is configured (then |:checktime|),
+                    and leaves an `output/_cache` dir in the cwd.
+
 ==============================================================================
 OPTIONS                                                 *strictdoc-options*
 
@@ -122,8 +144,18 @@ g:strictdoc_virtual_indent   Set to 0 to turn off the virtual indent
                           (|strictdoc-virtual-indent|). Default on.
 
                                         *g:strictdoc_composite_sections*
-g:strictdoc_composite_sections   Set to 1 to make `gs` emit the newer
-                          [[SECTION]] / [[/SECTION]] form. Default 0.
+g:strictdoc_composite_sections   `gs` emits [[SECTION]] / [[/SECTION]] by
+                          default. Set to 0 for the legacy [SECTION] form
+                          (rejected by StrictDoc 0.30+). Default 1.
+
+                                        *g:strictdoc_format_on_save*
+g:strictdoc_format_on_save   Set to 1 to run |:StrictdocFormat| on the
+                          whole buffer before each write. Default off.
+
+                                        *g:strictdoc_makeprg*
+g:strictdoc_makeprg   'makeprg' for the strictdoc compiler. Default
+                          `strictdoc format %:S`. Example:
+                          `strictdoc export --output-dir /tmp/sd %:p:h:S`
 
 Example: >lua
   vim.g.strictdoc_no_mappings = 1

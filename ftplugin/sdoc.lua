@@ -11,10 +11,14 @@ o.commentstring = ''
 o.expandtab = true
 o.shiftwidth = 2
 o.softtabstop = 2
+-- gq/=/:StrictdocFormat also fix blank lines before node markers.
+o.formatexpr = "v:lua.require'strictdoc.format'.formatexpr()"
 
-local undo = { 'setl fdm< fde< fdl< tfu< cms< et< sw< sts<', 'silent! delcommand -buffer StrictdocOutline' }
-local function map(modes, lhs, rhs, desc)
-  vim.keymap.set(vim.split(modes, ''), lhs, rhs, { buffer = true, silent = true, desc = desc })
+vim.cmd.compiler('strictdoc')
+
+local undo = { 'setl fdm< fde< fdl< tfu< cms< et< sw< sts< fex< mp< efm<', 'unlet! b:current_compiler', 'silent! delcommand -buffer StrictdocOutline', 'silent! delcommand -buffer StrictdocFormat', "exe 'silent! au! strictdoc_format * <buffer>'" }
+local function map(modes, lhs, rhs, desc, expr)
+  vim.keymap.set(vim.split(modes, ''), lhs, rhs, { buffer = true, silent = true, desc = desc, expr = expr })
   for m in modes:gmatch('.') do
     undo[#undo + 1] = ("exe 'silent! %sunmap <buffer> %s'"):format(m, lhs)
   end
@@ -30,6 +34,9 @@ map('xo', '<Plug>(strictdoc-node-inner)', obj .. '.select(true)<CR>', 'Inside no
 map('x', '<Plug>(strictdoc-wrap-requirement)', wrap .. "('requirement')<CR>", 'Wrap in [REQUIREMENT]')
 map('x', '<Plug>(strictdoc-wrap-text)', wrap .. "('text')<CR>", 'Wrap in [TEXT]')
 map('x', '<Plug>(strictdoc-wrap-section)', wrap .. "('section')<CR>", 'Wrap in [SECTION]')
+local fmt = function() return require('strictdoc.format').operator() end
+map('nx', '<Plug>(strictdoc-format)', fmt, 'Format (indent + blank lines)', true)
+map('n', '<Plug>(strictdoc-format-line)', function() return fmt() .. '_' end, 'Format line', true)
 map('n', '<Plug>(strictdoc-outline)', "<Cmd>lua require'strictdoc.outline'.toggle()<CR>", 'Toggle outline')
 
 local off = vim.g.strictdoc_no_mappings
@@ -41,10 +48,27 @@ if not off or off == 0 then
   map('x', 'gr', '<Plug>(strictdoc-wrap-requirement)')
   map('x', 'gt', '<Plug>(strictdoc-wrap-text)')
   map('x', 'gs', '<Plug>(strictdoc-wrap-section)')
+  map('nx', '=', '<Plug>(strictdoc-format)')
+  map('n', '==', '<Plug>(strictdoc-format-line)')
 end
 
 vim.api.nvim_buf_create_user_command(0, 'StrictdocOutline',
   function() require('strictdoc.outline').toggle() end, { desc = 'Toggle StrictDoc outline' })
+
+vim.api.nvim_buf_create_user_command(0, 'StrictdocFormat',
+  function(a) require('strictdoc.format').format(a.line1, a.line2) end,
+  { range = '%', desc = 'Fix indent and blank lines before node markers' })
+local fos = vim.g.strictdoc_format_on_save
+if fos and fos ~= 0 then
+  vim.api.nvim_create_autocmd('BufWritePre', {
+    group = vim.api.nvim_create_augroup('strictdoc_format', { clear = false }), buffer = 0,
+    callback = function()
+      local view = vim.fn.winsaveview()
+      require('strictdoc.format').format(1, vim.api.nvim_buf_line_count(0))
+      vim.fn.winrestview(view)
+    end,
+  })
+end
 
 require('strictdoc.virtual').attach(vim.api.nvim_get_current_buf())
 undo[#undo + 1] = "lua require'strictdoc.virtual'.detach(vim.api.nvim_get_current_buf())"

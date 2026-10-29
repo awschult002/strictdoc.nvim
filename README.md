@@ -39,6 +39,12 @@ nvim -c 'helptags ALL' -c q
   every marker and field in column 0 and keeps the grammar's two-space
   lists (RELATIONS, OPTIONS, VIEWS, `[GRAMMAR]`). Text between `>>>` and
   `<<<` is never reindented, so `gg=G` is safe on a whole file.
+- **Blank lines**: StrictDoc needs exactly one empty line before every node
+  marker (`[TEXT]`, `[REQUIREMENT]`, `[[SECTION]]`, `[[/SECTION]]`,
+  `[DOCUMENT_FROM_FILE]`, …; none or two is a syntax error). `=`, `gq` and
+  `:StrictdocFormat` insert or squeeze them, outside `>>>`/`<<<` blocks.
+  (`indentexpr` can't add lines, so `=` is a buffer-local operator that
+  fixes blank lines, then runs the builtin `=`.)
 - **Virtual indent**: nesting is shown with inline virtual text, one
   `shiftwidth` per open `[SECTION]`/`[[NODE]]`. The buffer text is never
   changed, so what you save is what StrictDoc parses.
@@ -68,6 +74,7 @@ Buffer-local, in `sdoc` buffers only.
 | `gr` | x | `(strictdoc-wrap-requirement)` | `[REQUIREMENT]` + `STATEMENT: >>>` … `<<<` |
 | `gt` | x | `(strictdoc-wrap-text)` | `[TEXT]` + `STATEMENT: >>>` … `<<<` |
 | `gs` | x | `(strictdoc-wrap-section)` | `[SECTION]` + `TITLE: ` (cursor there) … `[/SECTION]` |
+| `=` / `==` | n x / n | `(strictdoc-format)` / `(strictdoc-format-line)` | indent + one blank line before each node marker |
 | | n | `(strictdoc-outline)` | toggle the outline |
 
 In sdoc buffers these shadow the visual-mode `gs` (sleep), the visual
@@ -81,8 +88,11 @@ parser exists). Nowhere else.
 | `vim.g.strictdoc_virtual_indent` | on | `0`: no virtual indent (plain flat view) |
 | `shiftwidth` (buffer) | `2` | width of one virtual indent level |
 | `vim.g.strictdoc_no_mappings` | unset | `1`: skip the default keys; `<Plug>` maps stay |
-| `vim.g.strictdoc_composite_sections` | `0` | `1`: `gs` emits `[[SECTION]]` / `[[/SECTION]]` |
+| `vim.g.strictdoc_composite_sections` | `1` | `0`: `gs` emits legacy `[SECTION]` / `[/SECTION]` (rejected by StrictDoc ≥ 0.30) |
 | `:StrictdocOutline` | | toggle the outline; in it `<CR>` jumps, `zc`/`zo` fold, `q` closes |
+| `vim.g.strictdoc_format_on_save` | off | `1`: `:StrictdocFormat` the buffer before each write |
+| `:StrictdocFormat` | | fix indent and blank lines (range, default whole file); also `gq`, and `=` unless `strictdoc_no_mappings` |
+| `vim.g.strictdoc_makeprg` | `strictdoc format %:S` | `makeprg` for `:compiler strictdoc` (set by the ftplugin); `:make` validates the file, `:copen` lists errors with file:line:col |
 | `tagfunc` | set | `Ctrl-]`/`:tag` on UIDs, links, anchors, section titles |
 | `foldmethod=expr`, `foldlevel` | `99` | every node folds; `zM` closes all |
 
@@ -101,7 +111,6 @@ vim.wo.foldlevel = 0    -- open files folded
 ```lua
 vim.pack.add({ 'https://github.com/awschult002/strictdoc.nvim' })
 
-vim.g.strictdoc_composite_sections = 1 -- gs writes [[SECTION]]
 vim.g.strictdoc_no_mappings = 1        -- pick your own keys
 
 vim.api.nvim_create_autocmd('FileType', {
