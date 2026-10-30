@@ -93,7 +93,8 @@ parser exists). Nowhere else.
 | `:StrictdocOutline` | | toggle the outline; in it `<CR>` jumps, `zc`/`zo` fold, `q` closes |
 | `vim.g.strictdoc_format_on_save` | off | `1`: `:StrictdocFormat` the buffer before each write |
 | `:StrictdocFormat` | | fix indent and blank lines (range, default whole file); also `gq`, and `=` unless `strictdoc_no_mappings` |
-| `vim.g.strictdoc_makeprg` | `strictdoc format %:S` | `makeprg` for `:compiler strictdoc` (set by the ftplugin); `:make` validates the file, `:copen` lists errors with file:line:col |
+| `vim.g.strictdoc_makeprg` | `strictdoc export --formats=html` of the cwd project | `makeprg` for `:compiler strictdoc`. `:make` checks the grammar and the RST in every `>>>` block, and `:copen` lists errors at the `.sdoc` file and line. Run Neovim from the project root. Use `strictdoc format %:S` for a fast grammar-only check |
+| `vim.g.strictdoc_rst_syntax` | on | `0`: no RST highlighting inside `>>>` blocks |
 | `tagfunc` | set | `Ctrl-]`/`:tag` on UIDs, links, anchors, section titles |
 | `foldmethod=expr`, `foldlevel` | `99` | every node folds; `zM` closes all |
 

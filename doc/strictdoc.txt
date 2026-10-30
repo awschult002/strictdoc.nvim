@@ -154,8 +154,16 @@ g:strictdoc_format_on_save   Set to 1 to run |:StrictdocFormat| on the
 
                                         *g:strictdoc_makeprg*
 g:strictdoc_makeprg   'makeprg' for the strictdoc compiler. Default
-                          `strictdoc format %:S`. Example:
-                          `strictdoc export --output-dir /tmp/sd %:p:h:S`
+                          `strictdoc export --formats=html` of the project
+                          in the cwd, into a cache dir. This parses every
+                          document and also checks the RST inside >>> blocks;
+                          RST errors are mapped to the .sdoc file and line.
+                          Run Neovim from the project root. Grammar-only,
+                          single file: `strictdoc format %:S`
+
+                                        *g:strictdoc_rst_syntax*
+g:strictdoc_rst_syntax   Set to 0 to turn off RST highlighting inside
+                          >>> blocks. Default on.
 
 Example: >lua
   vim.g.strictdoc_no_mappings = 1
