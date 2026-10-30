@@ -1,4 +1,4 @@
--- Node motions (]] [[) and the node text object (an / in).
+-- Node motions (]] [[), node text object (an / in), block text object (at / it).
 local scan = require('strictdoc.scan')
 local M = {}
 
@@ -42,6 +42,31 @@ function M.select(inner)
     while e >= s and not vim.fn.getline(e):match('%S') do e = e - 1 end
     if s > e then return end
   end
+  vim.cmd(('normal! %dGV%dG'):format(s, e))
+end
+
+-- Innermost `KEY: >>>` ... `<<<` block containing lnum, as opener, closer.
+local function block(lnum)
+  local stack, best = {}, nil
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  for i, l in ipairs(lines) do
+    if l:match('^%s*[%w_]+:%s*>>>%s*$') then
+      stack[#stack + 1] = i
+    elseif l:match('^%s*<<<%s*$') and #stack > 0 then
+      local o = table.remove(stack)
+      if not best and o <= lnum and lnum <= i then best = { o, i } end
+      if best then break end
+    end
+  end
+  return best
+end
+
+function M.select_block(inner)
+  local b = block(vim.fn.line('.'))
+  if not b then return end
+  local s, e = b[1], b[2]
+  if inner then s, e = s + 1, e - 1 end
+  if s > e then return end
   vim.cmd(('normal! %dGV%dG'):format(s, e))
 end
 

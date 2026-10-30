@@ -50,7 +50,7 @@ nvim -c 'helptags ALL' -c q
   changed, so what you save is what StrictDoc parses.
 - **Folding**: `foldexpr` folds every node; sections nest their children.
 - **Motions**: `]]`/`[[` jump between nodes (counts, visual and
-  operator-pending work); `an`/`in` select a node.
+  operator-pending work); `an`/`in` select a node, `at`/`it` a `>>>`/`<<<` block.
 - **Wrap**: visual `gr`, `gt`, `gs` wrap the selection in a requirement,
   a text node or a section, always written flat.
 - **Outline**: `:StrictdocOutline` toggles a tree of sections and nodes
@@ -71,6 +71,7 @@ Buffer-local, in `sdoc` buffers only.
 | --- | --- | --- | --- |
 | `]]` / `[[` | n x o | `(strictdoc-next-node)` / `(strictdoc-prev-node)` | next / previous node |
 | `an` / `in` | x o | `(strictdoc-node-outer)` / `(strictdoc-node-inner)` | around / inside node |
+| `at` / `it` | x o | `(strictdoc-block-outer)` / `(strictdoc-block-inner)` | around / inside `>>>` block |
 | `gr` | x | `(strictdoc-wrap-requirement)` | `[REQUIREMENT]` + `STATEMENT: >>>` … `<<<` |
 | `gt` | x | `(strictdoc-wrap-text)` | `[TEXT]` + `STATEMENT: >>>` … `<<<` |
 | `gs` | x | `(strictdoc-wrap-section)` | `[SECTION]` + `TITLE: ` (cursor there) … `[/SECTION]` |
