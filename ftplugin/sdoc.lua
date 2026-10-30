@@ -15,6 +15,12 @@ o.softtabstop = 2
 o.formatexpr = "v:lua.require'strictdoc.format'.formatexpr()"
 
 vim.cmd.compiler('strictdoc')
+vim.api.nvim_create_autocmd('QuickFixCmdPost', {
+  group = vim.api.nvim_create_augroup('strictdoc_make', { clear = true }), pattern = 'make',
+  callback = function()
+    if vim.b.current_compiler == 'strictdoc' then require('strictdoc.make').fixup() end
+  end,
+})
 
 local undo = { 'setl fdm< fde< fdl< tfu< cms< et< sw< sts< fex< mp< efm<', 'unlet! b:current_compiler', 'silent! delcommand -buffer StrictdocOutline', 'silent! delcommand -buffer StrictdocFormat', "exe 'silent! au! strictdoc_format * <buffer>'" }
 local function map(modes, lhs, rhs, desc, expr)

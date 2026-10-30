@@ -28,7 +28,7 @@ end
 T['compiler sets makeprg/errorformat and undo restores'] = function()
   H.open('relations.sdoc')
   H.eq('strictdoc', vim.b.current_compiler)
-  H.eq('strictdoc format %:S', vim.bo.makeprg)
+  H.eq(1, vim.bo.makeprg:find('strictdoc export --formats=html', 1, true))
   vim.cmd('set filetype=text')
   H.eq('make', vim.bo.makeprg)
 end
@@ -64,6 +64,23 @@ T['real :make'] = function()
   H.eq(1, #e)
   H.eq(dir .. '/bad.sdoc', vim.fn.fnamemodify(e[1][1], ':p'))
   H.eq({ 5, 4 }, { e[1][2], e[1][3] })
+end
+
+T['real :make maps RST errors to the .sdoc line'] = function()
+  if vim.fn.executable('strictdoc') == 0 then print('skip: no strictdoc'); return end
+  local dir = vim.fn.tempname()
+  vim.fn.mkdir(dir)
+  vim.fn.writefile({ '[DOCUMENT]', 'TITLE: T', '', '[REQUIREMENT]', 'UID: A', 'STATEMENT: >>>',
+    '- item', 'not indented', '<<<' }, dir .. '/rst.sdoc')
+  vim.cmd.cd(dir)
+  vim.cmd('edit rst.sdoc')
+  vim.cmd('silent make!')
+  vim.cmd.cd('-')
+  local e = qf()
+  H.eq(1, #e)
+  H.eq(dir .. '/rst.sdoc', vim.fn.fnamemodify(e[1][1], ':p'))
+  H.eq(8, e[1][2])
+  H.eq(1, e[1][4]:find('RST: ', 1, true))
 end
 
 return T

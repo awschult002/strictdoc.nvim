@@ -15,7 +15,7 @@ T['highlight groups follow the grammar'] = function()
   H.eq('sdocNode', group(30, 1))
   H.eq('sdocUid', group(31, 10))
   H.eq('sdocDelimiter', group(33, 14))
-  H.eq('sdocString', group(34, 1))
+  H.eq('rstComment', group(34, 1)) -- '...' is an RST comment
   H.eq('sdocDelimiter', group(35, 3))
   H.eq('sdocNode', group(51, 6))
 end
@@ -44,6 +44,15 @@ T['an indented <<< ends the block, nothing leaks past it'] = function()
   H.eq('sdocString', group(3, 1))
   H.eq('sdocDelimiter', group(4, 7))
   H.eq('sdocKey', group(5, 1))
+end
+
+T['>>> blocks get RST highlighting, <<< still closes them'] = function()
+  H.buf({ '[TEXT]', 'STATEMENT: >>>', 'Some **bold** text', '', '.. code-block:: c', '', '   int x;', '<<<', 'TITLE: after' })
+  local g = function(l, c) return vim.fn.synIDattr(vim.fn.synID(l, c, 1), 'name') end
+  H.eq('rstStrongEmphasis', g(3, 7))
+  H.eq('sdocString', g(3, 1))
+  H.eq('sdocDelimiter', g(8, 1))
+  H.eq('sdocKey', g(9, 1))
 end
 
 return T

@@ -38,8 +38,16 @@ syn match sdocDocument /^\s*\[\%(DOCUMENT\|GRAMMAR\|DOCUMENT_FROM_FILE\)\]\s*$/ 
 " KEY: >>> ... <<< is verbatim text; so is the legacy [FREETEXT] block. The
 " first unmatched line that is just <<< (any indent) ends the block; nested
 " KEY: >>> ... <<< examples are skipped.
+" Block text is reStructuredText; set g:strictdoc_rst_syntax = 0 to skip it.
+let s:rst = get(g:, 'strictdoc_rst_syntax', 1)
+if s:rst
+  unlet! b:current_syntax
+  syn include @sdocRst syntax/rst.vim
+  unlet! b:current_syntax
+endif
+
 syn region sdocNested contained transparent start=/^\s*[A-Z][A-Za-z0-9_-]*: >>>\s*$/ end=/^\s*<<<\s*$/ contains=sdocNested
-syn region sdocString matchgroup=sdocDelimiter start=/\%(^\s*\S.*: \)\@<=>>>$/ end=/^\s*<<<\s*$/ contains=sdocNested,sdocLink,sdocAnchor,@Spell
+execute 'syn region sdocString matchgroup=sdocDelimiter start=/\%(^\s*\S.*: \)\@<=>>>$/ end=/^\s*<<<\s*$/ keepend contains=sdocNested,sdocLink,sdocAnchor,@Spell' . (s:rst ? ',@sdocRst' : '')
 syn region sdocString matchgroup=sdocNode start=/^\s*\[FREETEXT\]\s*$/ end=/^\s*\[\/FREETEXT\]\s*$/ contains=sdocLink,sdocAnchor,@Spell
 
 hi def link sdocDocument PreProc
